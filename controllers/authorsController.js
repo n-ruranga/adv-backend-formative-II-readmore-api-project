@@ -64,9 +64,27 @@ async function updateAuthor(req, res) {
   }
 }
 
+async function deleteAuthor(req, res) {
+  try {
+    const author = await Author.findByIdAndDelete(req.params.id);
+
+    if (!author) {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+
+    res.status(200).json({ message: 'Author deleted successfully' });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+    res.status(500).json({ message: 'Failed to delete author' });
+  }
+}
+
 module.exports = {
   createAuthor,
   getAllAuthors,
   getAuthorById,
   updateAuthor,
+  deleteAuthor,
 };
