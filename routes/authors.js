@@ -1,7 +1,8 @@
 const express = require('express');
+const { createAuthor } = require('../controllers/authorsController');
 
 const router = express.Router();
 
-// Author endpoints will be wired here
+router.post('/', createAuthor);
 
 module.exports = router;
