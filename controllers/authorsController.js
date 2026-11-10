@@ -1,4 +1,5 @@
 const Author = require('../models/Author');
+const Book = require('../models/Book');
 
 async function createAuthor(req, res) {
   try {
@@ -81,10 +82,29 @@ async function deleteAuthor(req, res) {
   }
 }
 
+async function getAuthorBooks(req, res) {
+  try {
+    const author = await Author.findById(req.params.id);
+
+    if (!author) {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+
+    const books = await Book.find({ author: req.params.id }).populate('author');
+    res.status(200).json(books);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+    res.status(500).json({ message: 'Failed to fetch author books' });
+  }
+}
+
 module.exports = {
   createAuthor,
   getAllAuthors,
   getAuthorById,
   updateAuthor,
   deleteAuthor,
+  getAuthorBooks,
 };
