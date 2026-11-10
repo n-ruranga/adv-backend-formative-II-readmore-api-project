@@ -1,7 +1,8 @@
 const express = require('express');
+const { createBook } = require('../controllers/booksController');
 
 const router = express.Router();
 
-// Book endpoints will be wired here
+router.post('/', createBook);
 
 module.exports = router;
