@@ -22,7 +22,25 @@ async function getAllAuthors(req, res) {
   }
 }
 
+async function getAuthorById(req, res) {
+  try {
+    const author = await Author.findById(req.params.id);
+
+    if (!author) {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+
+    res.status(200).json(author);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+    res.status(500).json({ message: 'Failed to fetch author' });
+  }
+}
+
 module.exports = {
   createAuthor,
   getAllAuthors,
+  getAuthorById,
 };
