@@ -13,6 +13,16 @@ async function createBook(req, res) {
   }
 }
 
+async function getAllBooks(req, res) {
+  try {
+    const books = await Book.find().populate('author');
+    res.status(200).json(books);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch books' });
+  }
+}
+
 module.exports = {
   createBook,
+  getAllBooks,
 };
