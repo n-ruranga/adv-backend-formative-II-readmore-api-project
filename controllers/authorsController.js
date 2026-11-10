@@ -13,6 +13,16 @@ async function createAuthor(req, res) {
   }
 }
 
+async function getAllAuthors(req, res) {
+  try {
+    const authors = await Author.find();
+    res.status(200).json(authors);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch authors' });
+  }
+}
+
 module.exports = {
   createAuthor,
+  getAllAuthors,
 };
