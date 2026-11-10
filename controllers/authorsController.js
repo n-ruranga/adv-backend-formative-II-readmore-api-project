@@ -39,8 +39,34 @@ async function getAuthorById(req, res) {
   }
 }
 
+async function updateAuthor(req, res) {
+  try {
+    const { name, country, bio } = req.body;
+    const author = await Author.findByIdAndUpdate(
+      req.params.id,
+      { name, country, bio },
+      { new: true, runValidators: true }
+    );
+
+    if (!author) {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+
+    res.status(200).json(author);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Failed to update author' });
+  }
+}
+
 module.exports = {
   createAuthor,
   getAllAuthors,
   getAuthorById,
+  updateAuthor,
 };
