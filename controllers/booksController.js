@@ -22,7 +22,25 @@ async function getAllBooks(req, res) {
   }
 }
 
+async function getBookById(req, res) {
+  try {
+    const book = await Book.findById(req.params.id).populate('author');
+
+    if (!book) {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+
+    res.status(200).json(book);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+    res.status(500).json({ message: 'Failed to fetch book' });
+  }
+}
+
 module.exports = {
   createBook,
   getAllBooks,
+  getBookById,
 };
