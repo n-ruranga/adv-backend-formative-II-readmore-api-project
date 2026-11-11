@@ -67,12 +67,21 @@ async function updateAuthor(req, res) {
 
 async function deleteAuthor(req, res) {
   try {
-    const author = await Author.findByIdAndDelete(req.params.id);
+    const author = await Author.findById(req.params.id);
 
     if (!author) {
       return res.status(404).json({ message: 'Author not found' });
     }
 
+    // Policy A: block delete while the author still has books (avoids orphans)
+    const bookCount = await Book.countDocuments({ author: req.params.id });
+    if (bookCount > 0) {
+      return res.status(409).json({
+        message: `Cannot delete author while they still have ${bookCount} book(s). Remove or reassign the books first.`,
+      });
+    }
+
+    await Author.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Author deleted successfully' });
   } catch (error) {
     if (error.name === 'CastError') {
