@@ -12,6 +12,19 @@ async function createBook(req, res) {
       });
     }
 
+    if (typeof title === 'string') {
+      const escapedTitle = title.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const duplicateTitle = await Book.findOne({
+        author,
+        title: { $regex: new RegExp(`^${escapedTitle}$`, 'i') },
+      });
+      if (duplicateTitle) {
+        return res.status(409).json({
+          message: 'This author already has a book with that title',
+        });
+      }
+    }
+
     const book = await Book.create({ title, genre, price, publishedYear, author });
     res.status(201).json(book);
   } catch (error) {
