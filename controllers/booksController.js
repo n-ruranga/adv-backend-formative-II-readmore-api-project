@@ -67,7 +67,8 @@ async function createBook(req, res) {
 
 async function getAllBooks(req, res) {
   try {
-    const { genre, minPrice, maxPrice, author, search, sort, order } = req.query;
+    const { genre, minPrice, maxPrice, author, search, sort, order, page, limit } =
+      req.query;
     const filter = {};
 
     if (genre) {
@@ -99,6 +100,23 @@ async function getAllBooks(req, res) {
     if (sort && allowedSortFields.includes(sort)) {
       const sortOrder = order === 'desc' ? -1 : 1;
       query = query.sort({ [sort]: sortOrder });
+    }
+
+    const total = await Book.countDocuments(filter);
+    const usePagination = page !== undefined || limit !== undefined;
+
+    if (usePagination) {
+      const pageNum = Math.max(1, parseInt(page, 10) || 1);
+      const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+      const skip = (pageNum - 1) * limitNum;
+
+      const results = await query.skip(skip).limit(limitNum);
+      return res.status(200).json({
+        page: pageNum,
+        limit: limitNum,
+        total,
+        results,
+      });
     }
 
     const books = await query;
