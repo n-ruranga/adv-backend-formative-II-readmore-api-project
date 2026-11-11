@@ -109,6 +109,56 @@ async function getAuthorBooks(req, res) {
   }
 }
 
+async function getAuthorStats(req, res) {
+  try {
+    const author = await Author.findById(req.params.id);
+
+    if (!author) {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+
+    const books = await Book.find({ author: req.params.id });
+
+    if (books.length === 0) {
+      return res.status(200).json({
+        author: author.name,
+        bookCount: 0,
+        averagePrice: 0,
+        cheapestBook: null,
+        mostExpensiveBook: null,
+      });
+    }
+
+    const totalPrice = books.reduce((sum, book) => sum + book.price, 0);
+    const averagePrice = Number((totalPrice / books.length).toFixed(2));
+
+    let cheapest = books[0];
+    let mostExpensive = books[0];
+
+    for (const book of books) {
+      if (book.price < cheapest.price) {
+        cheapest = book;
+      }
+      if (book.price > mostExpensive.price) {
+        mostExpensive = book;
+      }
+    }
+
+    res.status(200).json({
+      author: author.name,
+      bookCount: books.length,
+      averagePrice,
+      cheapestBook: cheapest.title,
+      mostExpensiveBook: mostExpensive.title,
+    });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({ message: 'Author not found' });
+    }
+    res.status(500).json({ message: 'Failed to fetch author stats' });
+  }
+}
+
 module.exports = {
   createAuthor,
   getAllAuthors,
@@ -116,4 +166,5 @@ module.exports = {
   updateAuthor,
   deleteAuthor,
   getAuthorBooks,
+  getAuthorStats,
 };
