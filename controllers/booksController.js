@@ -1,6 +1,26 @@
 const Book = require('../models/Book');
 const Author = require('../models/Author');
 
+function getBookBusinessRuleError(price, publishedYear) {
+  const currentYear = new Date().getFullYear();
+
+  if (price !== undefined && price !== null && Number(price) <= 0) {
+    return 'Price must be greater than zero';
+  }
+
+  if (publishedYear !== undefined && publishedYear !== null) {
+    const year = Number(publishedYear);
+    if (year < 1450) {
+      return 'Published year cannot be before 1450';
+    }
+    if (year > currentYear) {
+      return 'Published year cannot be in the future';
+    }
+  }
+
+  return null;
+}
+
 async function createBook(req, res) {
   try {
     const { title, genre, price, publishedYear, author } = req.body;
@@ -23,6 +43,11 @@ async function createBook(req, res) {
           message: 'This author already has a book with that title',
         });
       }
+    }
+
+    const businessRuleError = getBookBusinessRuleError(price, publishedYear);
+    if (businessRuleError) {
+      return res.status(422).json({ message: businessRuleError });
     }
 
     const book = await Book.create({ title, genre, price, publishedYear, author });
@@ -69,6 +94,12 @@ async function getBookById(req, res) {
 async function updateBook(req, res) {
   try {
     const { title, genre, price, publishedYear, author } = req.body;
+
+    const businessRuleError = getBookBusinessRuleError(price, publishedYear);
+    if (businessRuleError) {
+      return res.status(422).json({ message: businessRuleError });
+    }
+
     const book = await Book.findByIdAndUpdate(
       req.params.id,
       { title, genre, price, publishedYear, author },
