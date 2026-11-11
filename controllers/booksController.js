@@ -1,11 +1,25 @@
 const Book = require('../models/Book');
+const Author = require('../models/Author');
 
 async function createBook(req, res) {
   try {
     const { title, genre, price, publishedYear, author } = req.body;
+
+    const existingAuthor = await Author.findById(author);
+    if (!existingAuthor) {
+      return res.status(400).json({
+        message: 'Cannot create book: author does not exist',
+      });
+    }
+
     const book = await Book.create({ title, genre, price, publishedYear, author });
     res.status(201).json(book);
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        message: 'Cannot create book: author does not exist',
+      });
+    }
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
     }
