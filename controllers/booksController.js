@@ -67,7 +67,41 @@ async function createBook(req, res) {
 
 async function getAllBooks(req, res) {
   try {
-    const books = await Book.find().populate('author');
+    const { genre, minPrice, maxPrice, author, search, sort, order } = req.query;
+    const filter = {};
+
+    if (genre) {
+      filter.genre = genre;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.price = {};
+      if (minPrice !== undefined) {
+        filter.price.$gte = Number(minPrice);
+      }
+      if (maxPrice !== undefined) {
+        filter.price.$lte = Number(maxPrice);
+      }
+    }
+
+    if (author) {
+      filter.author = author;
+    }
+
+    if (search) {
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.title = { $regex: escapedSearch, $options: 'i' };
+    }
+
+    let query = Book.find(filter).populate('author');
+
+    const allowedSortFields = ['price', 'title', 'publishedYear'];
+    if (sort && allowedSortFields.includes(sort)) {
+      const sortOrder = order === 'desc' ? -1 : 1;
+      query = query.sort({ [sort]: sortOrder });
+    }
+
+    const books = await query;
     res.status(200).json(books);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch books' });
